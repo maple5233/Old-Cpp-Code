@@ -1,0 +1,128 @@
+#include<iostream>
+#include<string>
+#include<stdlib.h>
+using namespace std;
+
+class CDate
+{
+public:
+	CDate() :year(0), month(0), day(0){}
+	CDate(int year, int month, int day) :month(month), day(day), year(year){}
+	CDate& operator=(const CDate& date){
+		this->day = date.day;
+		this->month = date.month;
+		this->year = date.year;
+		return *this;// 返回自身的引用（这里是为了方便进行 连续赋值 操作）;
+	}// 重载赋值运算符;
+	CDate operator++(int){
+		CDate temp = *this;
+		bool isLeapYear = !((year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0));
+		bool isFeb = (month == 2);
+		bool isBigMonth = (month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12);
+		bool isSmallMonth = !isBigMonth &&!isFeb;
+
+		if ((isBigMonth&&day == 31) || (isSmallMonth&&day == 30))
+		{
+			day = 1;
+			month++;
+		}
+		else if (isFeb)
+		{
+			if ((isLeapYear&&day == 28) || (!isLeapYear&&day == 29))
+			{
+				day = 1;
+				month++;
+			}
+			else
+			{
+				day++;
+			}
+		}
+		else
+		{
+			day++;
+		}
+
+		if (month == 13)
+		{
+			month = 1;
+			year++;
+		}
+
+		return temp;
+	}// 重载右++运算符;
+	CDate operator+(const int& num) const{
+		int n = num;
+		CDate date = *this;
+		while (n--)
+		{
+			date++;
+		}
+		return date;
+	}
+	bool operator!= (const CDate& date){
+		return (this->day != date.day || this->month != date.month || this->year != date.year);
+	}
+	bool operator== (const CDate& date){
+		return (this->year == date.year) && (this->month == date.month) && (this->day == date.day);
+	}
+	operator int() const
+	{
+		int result = 1;
+		CDate date(year, 1, 1);
+		while (true)
+		{
+			result++;
+			date++;
+			if (date == *this){
+				break;
+			}
+		}
+		return result;
+	}// 重载强制转换运算符;
+	friend ostream& operator<<(ostream& out, const CDate& date);
+	friend istream& operator>>(istream& in, CDate& date);
+private:
+	int year;
+	int month;
+	int day;
+};
+ostream& operator<<(ostream& out, const CDate& date){
+	out << date.year << "/";
+	if (date.month < 10){
+		out << "0";
+	}
+	out << date.month << "/";
+	if (date.day < 10){
+		out << "0";
+	}
+	out << date.day << endl;
+	return out;
+}
+istream& operator>>(istream& in, CDate& date){
+	string s;
+	in >> s;
+	date.year = atoi(s.substr(0, 4).c_str());
+	int beginMonth = s.find('/') + 1;
+	int beginDay = s.find('/', beginMonth) + 1;
+	date.month = atoi(s.substr(beginMonth, beginDay).c_str());
+	date.day = atoi(s.substr(beginDay).c_str());
+	return in;
+}
+int main()
+{
+	int n, t;
+	CDate d;
+	cin >> t;
+	while (t--)
+	{
+		cin >> d;
+		cout << d++;
+		cout << d;
+		cin >> n;
+		d = d + n;
+		cout << d;
+		cout << (int)d << endl;
+	}
+	return 0;
+}

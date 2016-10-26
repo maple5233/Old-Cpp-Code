@@ -1,0 +1,201 @@
+#include <iostream>
+using namespace std;
+
+class Monster;
+class Boss;
+class Altman
+{
+private:
+	int rank, hp, damage, exp, money;
+public:
+	friend class Monster;
+	friend class Boss;
+
+	Altman(int _rank = 1);
+	int Gethp(){ return hp; }
+	void Levelup();
+	void Escape(){if (hp <= 10) money = 0;}
+	void restore();
+	void Attack(Monster *p);
+	void Display(){cout << "奥特曼状态(rank=" << rank << " hp=" << hp << " damage=" << damage << " exp=" << exp << " money=" << money << ")" << endl; }
+	~Altman(){}
+};
+
+class Monster
+{
+protected:
+	int rank, hp, damage, exp, money;
+public:
+	friend class Altman;
+
+	Monster(int _rank = 1);
+	int Gethp(){ return hp; }
+	virtual void Fightback(Altman *p){ p->hp -= damage / 2; }
+	virtual void lose(Altman *p){ p->exp += exp; p->money += money;  cout << "Boss!Help!" << endl; }
+	virtual void Display(){ cout << "怪兽状态(rank=" << rank << " hp=" << hp << " damage=" << damage << " exp=" << exp << " money=" << money << ")" << endl; }
+	~Monster(){}
+};
+
+class Boss :public Monster
+{
+public:
+	friend class Altman;
+
+	Boss();
+	int Gethp(){ return hp; }
+	void XP(Altman *p);
+	virtual void Fightback(Altman *p){ p->hp -= damage / 2; }
+	void lose(Altman *p){ p->exp += exp; p->money += money; cout << "I'll be back!" << endl; }
+	void Display(){cout << "Boss怪兽状态(rank=" << rank << " hp=" << hp << " damage=" << damage << " exp=" << exp << " money=" << money << ")" << endl;}
+	~Boss(){}
+};
+
+Altman::Altman(int _rank)
+{
+	rank = _rank;
+	hp = 10 * rank;
+	damage = 3 * rank;
+	money = 10 * rank;
+	exp = 0;
+}
+
+void Altman::Levelup()
+{
+	while (exp >= 10 * rank)
+	{
+		exp -= 10 * rank;
+		rank++;
+		hp = 10 * rank;
+		damage = 3 * rank;
+	}
+}
+
+void Altman::Attack(Monster *p)
+{
+	p->hp -= damage;
+}
+
+void Altman::restore()
+{
+	if (money > 0 && hp <= 5 * rank&&hp >= 10)
+	{
+		while (money >= 10 && hp < 10 * rank)
+		{
+			money -= 10;
+			hp += 1;
+		}
+	}
+}
+
+Monster::Monster(int _rank)
+{
+	rank = _rank;
+	hp = 20 * rank;
+	damage = 2 * rank;
+	money = 10 * rank;
+	exp = 10 * rank;
+}
+
+Boss::Boss()
+{
+	rank = 10;
+	hp = 300;
+	exp = 1000;
+	damage = 50;
+	money = 1001;
+}
+
+void Boss::XP(Altman *p)
+{
+	int t = 3;
+	cout << "XP*****" << endl;
+	while (t--)
+		this->Fightback(p);
+}
+
+int main(){
+
+	//输入奥特曼的等级值，利用等级值，声明一个奥特曼对象并显示奥特曼对象初始状态。
+
+	int rank;
+	cin >> rank;
+	Altman p(rank);
+
+	int t;
+	cin >> t;//输入要打的怪兽个数数
+	while (t--&&p.Gethp() > 10)		//只要奥特曼没死也没逃跑，就继续与怪兽的战斗
+	{
+		p.Display();
+
+		Monster* q;
+
+		char c = 0;
+
+		while (1)
+		{
+			cin >> c;
+
+			if (c == 'B') { q = new Boss(); break; }
+
+			else if (c == 'M') { int r; cin >> r; q = new Monster(r); break; }
+
+			else cout << "请重新输入怪兽类型" << endl;
+
+		}
+
+		q->Display();
+
+		//设置战斗标志flag为true，启动战斗循环，具体如下：
+
+		int flag = 1;
+
+		while (flag) //当战斗未结束就继续
+
+		{
+			p.Attack(q);//奥特曼攻击1次            
+
+			if (q->Gethp()>0)  //怪兽没死
+
+			{
+				q->Fightback(&p);//怪兽反击1次
+
+				if (p.Gethp()>10)      //奥特曼生命值大于点，不逃跑
+
+					p.restore();//奥特曼回血，在方法中判断是否需要加血
+
+				else {   //奥特曼逃跑，并输出"lose"并回车
+
+					p.Escape();
+
+					cout << "lose" << endl;
+
+					p.Display();//输出奥特曼状态       
+
+					flag = 0;//停止战斗                 
+
+				}
+			}
+
+			else //怪兽死了
+
+			{
+				 //奥特曼胜利，并输出"win"并回车
+
+				cout << "win" << endl;
+
+				//奥特曼升级
+
+				q->lose(&p);//输出怪兽战败信息
+				p.Levelup();
+
+				flag = 0;//停止战斗
+
+			}
+
+		}
+
+	}
+
+//	system("pause");
+	return 0;
+}

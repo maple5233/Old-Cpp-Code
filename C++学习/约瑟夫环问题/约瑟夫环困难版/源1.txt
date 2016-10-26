@@ -1,0 +1,70 @@
+﻿/*
+编号为1，2… n的n个人按顺时针方向围坐一圈，每人持有一个密码（正整数）。
+一开始任选一个正整数作为报数的上限值m，从第一个人开始按顺时针方向自1开始顺序报数，
+报到m时停止报数，报m的人出列，将他的密码作为新的m值，从他的顺时针方向上的下一个开始重新从1报数，如此下去，
+直至所有人全部出列为止，设计一个程序求出出列顺序。
+*/
+#include<iostream>
+#include<limits.h>
+#include<string>
+#define max(a,b) a>b?a:b
+#define min(a,b) a<b?a:b
+using namespace std;
+struct Node
+{
+	int index;
+	int passWord;
+	struct Node* next;
+};
+Node* Create(int n)
+{
+	int i, pass;
+	Node* head;//头
+	Node* tail;//尾
+	head = tail = new Node;
+	for (i = 1; i<n; i++)
+	{
+		tail->index = i;
+		cin >> pass;
+		tail->passWord = pass;
+		tail->next = new Node;
+		tail = tail->next;
+	}
+	tail->index = i;
+	cin >> pass;
+	tail->passWord = pass;
+	tail->next = head;
+	return head;
+}
+void Josephu(Node* head, int passWord)
+{
+	int i, j;
+	Node* tail = NULL;
+	for (i = 1; tail != head; i++)//只剩下头的时候结束
+	{
+		for (j = 1; j<passWord; j++)
+		{
+			tail = head;//tail在追赶head
+			head = head->next;//head在跑
+		}//数数
+		tail->next = head->next;//head出列
+		cout << head->index << ' ';
+		passWord = head->passWord;
+		delete head;//释放head
+		head = tail->next;//连接节点
+	}
+	j = head->index;//最后一人编号
+	i = head->passWord;//最后一人密码
+	cout << j << endl;
+	delete head;//最后一人出列
+}
+int main()
+{
+	int n, passWord;
+	Node* head;
+	cin >> passWord >> n;//输入初始密码和人数 初始密码不能为1
+	head = Create(n);
+	Josephu(head, passWord);
+	system("pause");
+	return 0;
+}

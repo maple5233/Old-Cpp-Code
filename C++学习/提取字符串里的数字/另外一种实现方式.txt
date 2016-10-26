@@ -1,0 +1,52 @@
+/*
+char str[100];
+cin.getline(str, 100, '\n');
+cin.getline函数 用于字符数组 原形为istream &getline(char *buffer,streamsize num[,char delim]);  delim默认为'\n'
+*/
+/*
+string str;
+getline(cin, str, '\n');
+读取一整行字符串 getline函数用于string类型
+原形为 istream& getline(istream &is[,string &str][,char delim]); delim默认为'\n'
+*/
+#include<iostream>
+#include<string>//c++自带string类型 字符串
+using namespace std;
+bool isNum(char c)
+{
+	if (c<='9'&&c>='0')
+		return true;
+	return false;
+}
+int main()
+{
+	string str;
+	unsigned int i,j=0,tmp=0;
+	int num[100];
+	cout << "请输入一个带数字的字符串：" << endl;
+	getline(cin, str, '\n');
+	for (i = 0; i < str.length(); i++)
+	{
+		if (!isNum(str[i]))
+		{
+			continue;
+		}
+		while (isNum(str[i]))
+		{
+			tmp *= 10;
+			tmp += int(str[i] - '0');
+			i++;
+		}
+		num[j] = tmp;
+		j++;
+		tmp = 0;
+	}
+	cout << "结果是：";
+	for (i = 0; i < j; i++)
+	{
+		cout << num[i] << ' ';
+	}
+	cout << endl;
+	system("pause");
+	return 0;
+}
