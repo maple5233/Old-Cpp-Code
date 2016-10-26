@@ -1,0 +1,244 @@
+#include<vector>
+#include<queue>
+#include<iostream>
+/*用户输入邻接矩阵 然后遍历输出之*/
+using namespace std;
+#define datatype int
+typedef enum { UNDISCOVERD, DISCOVERD, VISITED } VStatus;//顶点的三种状态
+typedef enum { UNDETERMINED, TREE, CROSS, FORWARD, BACKWARD }Etype;//边的类型：未定义，支撑树边，跨边，前向边，后向边
+
+vector<datatype> out;
+queue<datatype> out2;
+
+
+class Vertex//顶点类
+{
+public:
+	datatype data;//数据域
+	int no;//编号
+	VStatus status;//状态
+	int dtime, ftime;//遍历中的时间标签
+	int parent;//遍历中的父节点
+	Vertex(datatype d = 0)
+	{
+		data = d;
+		parent = -1;
+		no = 0;
+		dtime = -1;
+		ftime = -1;
+		status = UNDISCOVERD;
+	}
+};
+class Edge
+{
+public:
+	int weight;//权重
+	Etype type;//分类
+	Edge(int w = 9999)
+	{
+		weight = w;
+		type = UNDETERMINED;
+	}
+};
+class Graph
+{
+private:
+	void reset()
+	{//辅助信息复位
+		int i, j;
+		for (i = 0; i < n; i++)
+		{
+			V.at(i).status = UNDISCOVERD;
+			V.at(i).dtime = V.at(i).ftime = -1;
+			V.at(i).parent = -1;
+			for (j = 0; j < n; j++)
+			{
+				if (E[i][j] != NULL)
+				{
+					E[i][j]->type = UNDETERMINED;
+				}
+			}
+		}
+	}
+	void BFS(int v, int &clock)//连通域广度优先搜索
+	{
+		queue<int> Q;
+		int u;
+
+		V[v].status = DISCOVERD;
+		Q.push(v);
+		while (!Q.empty())
+		{
+			int v = Q.front();
+			Q.pop();
+			V[v].dtime = ++clock;
+			for (u = firstNbr(v); u < n; u = nextNbr(v, u))//枚举所有邻居
+			{
+				if (UNDISCOVERD == V[u].status)
+				{
+					V[u].status = DISCOVERD;
+					Q.push(u);
+					E[v][u]->type = TREE;
+					V[u].parent = v;
+				}
+				else
+				{
+					E[v][u]->type = CROSS;
+				}
+			}
+			cout << V[v].data << ' ';//访问之
+			V[v].ftime = clock;
+			V[v].status = VISITED;
+		}
+	}
+	void DFS(int v, int &clock)//连通域深度优先搜索
+	{
+		int u;
+		V[v].dtime = ++clock;
+		V[v].status = DISCOVERD;//先序发现之
+		out2.push(V[v].data);//先序随即访问之
+		for (u = firstNbr(v); u < n; u = nextNbr(v, u))
+		{
+			switch (V[u].status)
+			{
+			case UNDISCOVERD://扩展支撑树
+				E[v][u]->type = TREE;
+				V[u].parent = v;
+				//cout << "v->" <<v;
+				//cout << "u->" <<u ;
+				DFS(u, clock);
+				break;//递归
+			case DISCOVERD://u已经被发现但没被访问 应该属于被后代指向的祖先
+				E[v][u]->type = BACKWARD; break;
+			default://u已经被访问完毕
+				E[v][u]->type = (V[v].dtime < V[u].dtime) ? FORWARD : CROSS; break;
+			}
+		}
+		//out2.push(V[v].data);//后序访问之
+		V[v].status = VISITED;
+		V[v].ftime = ++clock;
+	}
+public:
+	vector<Vertex> V;//顶点集
+	Edge* E[20][20];//边集 二维数组
+	int n;//点的个数
+	int e;//边的条数
+	Graph()
+	{
+		int i, j;
+		n = e = 0;
+		for (i = 0; i < 20; i++)
+		{
+			for (j = 0; j < 20; j++)
+				E[i][j] = NULL;
+		}
+	}
+
+	int getIndex(datatype c)//返回指定数据的编号
+	{
+		vector<Vertex>::iterator it;
+		for (it = V.begin(); it != V.end(); it++)
+		{
+			if (it->data == c)
+			{
+				return it->no;
+			}
+		}
+	}
+	bool exsit(int i, int j)//判断某条边是否存在
+	{
+		return (0 <= j) && (0 <= i) && (i < n) && (j < n) && (E[i][j]);
+	}
+	int nextNbr(int i, int j)//若已经枚举到到点i的邻居j 枚举下一个i的邻居
+	{
+		while ((n>j) && !exsit(i, ++j));
+		return j;
+	}
+	int firstNbr(int i)//枚举点i的第一个邻居（在i行的行首）
+	{
+		return(nextNbr(i, -1));
+	}
+	bool insertEdge(int i, int j, int w = 9999)//插入一条由i指向j的边 权重为w
+	{
+		E[i][j] = new Edge(w);//创建新边 权重为w
+		e++;
+		return true;
+	}
+	void insertVertex(Vertex v)//插入顶点v
+	{
+		n++;
+		V.push_back(v);//点集中插入v
+	}
+	void initVertex(int size)//用户直接输入邻接矩阵
+	{
+		int i, j, tmp;
+		n = size;
+		for (i = 0; i < size; i++)
+		{
+			for (j = 0; j < size; j++)
+			{
+				cin >> tmp;
+				if (tmp == 1)
+				{
+					insertEdge(i, j);
+					e++;
+				}
+			}
+		}
+		Vertex v;
+		for (i = 0; i < size; i++)
+		{
+			v.no = i;
+			v.data = i;
+			insertVertex(v);
+		}
+		n = n / 2;
+		e = e / 2;
+	}
+	void bfs(int s)//全图广度优先搜索
+	{
+		//reset();
+		int clock = 0;
+		int v = s;
+		do
+		{
+			if (UNDISCOVERD == V[v].status)
+			{
+				BFS(v, clock);
+			}
+		} while (s != (v = (++v) % n));
+	}
+	void dfs(int s)//全图深度优先搜索
+	{
+		int clock = 0;
+		int v = s;
+		do
+		{
+			if (UNDISCOVERD == V[v].status)
+			{
+				DFS(v, clock);
+				while (out2.size() > 0)
+				{
+					cout << out2.front() << ' ';
+					out2.pop();
+				}
+			}
+		} while (s != (v = (++v) % n));
+	}
+};
+int main()
+{
+	int T;
+	cin >> T;
+	while (T--)
+	{
+		int n;
+		Graph gr;
+
+		cin >> n;
+		gr.initVertex(n);
+		gr.bfs(0);
+		cout << endl;
+	}
+	return 0;
+}

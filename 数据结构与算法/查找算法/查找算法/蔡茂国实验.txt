@@ -1,0 +1,159 @@
+#include<iostream>
+#include<algorithm>
+using namespace std;
+#define datatype int
+class Search
+{
+private:
+	datatype* main;//主表
+	int size;//表的大小
+	bool success;//是否成功
+	int index;//成功的位置
+	int no;//查找次数
+	void seqSearch()//顺序查找
+	{
+		int n = size;
+		while (n--)
+		{
+			no++;
+			if (main[0] == main[n])
+			{
+				index = n;
+				if (n == 0)
+				{
+					success = false;
+				}
+				return;
+			}
+		}
+	}
+	void binarySearch_1()//已经排好序了折半查找迭代实现
+	{
+		int low = 1, high = size, key = main[0];
+		int mid = 0;
+		success = false;
+		while (low < high)//可以有等号 low < = high,不影响判断。  
+		{
+			mid = (low + high) >> 1;
+			no++;
+			if (main[mid] == key)
+			{
+				index = mid;
+				success = true;
+				return;
+			}
+			if (main[mid] > key)
+				high = mid - 1;
+			if (main[mid] < key)
+				low = mid + 1;  
+		}
+		if (!success)
+			no++;
+	}
+	int binarySearch_2(int low, int high)//已经排好序了折半查找递归实现
+	{
+		if (low > high)
+		{
+			return 0;//查找失败
+		}
+		int mid = (low + high) >> 1;
+		no++;
+		if (main[mid] == main[0])
+		{
+			success = true;
+			return mid;
+		}
+		if (main[mid] > main[0])
+			return binarySearch_2(low, mid - 1);    
+		else
+			return binarySearch_2(mid + 1, high); 
+	}
+	void mianSort()//排序
+	{
+		if (main)
+		{
+			sort(main + 1, main + size);
+		}
+	}
+public:
+	Search()
+	{
+		main = NULL;
+		success = true;
+		no=0;
+	}
+	Search(int size)
+	{
+		main = new datatype[size + 1];
+		this->size = size + 1;
+		success = true;
+		no=0;
+	}
+	~Search()
+	{
+		if (main)
+			delete[] main;
+	}
+	void initMain()
+	{
+		int i = 0;
+		for (i = 1; i < size; i++)
+		{
+			cin >> main[i];
+		}
+		cin >> main[0];//输入待查找的值
+	}
+	void seqDisplay()
+	{
+		seqSearch();
+		if (success)
+		{
+			cout << 1 << ' ' << index << ' ' << no << endl;
+		}
+		else
+		{
+			cout << "0 0 " << size << endl;
+		}
+	}
+	void binarySearch_1_display()
+	{
+		mianSort();
+		binarySearch_1();
+		if (success)
+		{
+			cout << 1 << ' ' << index << ' ' << no << endl;
+		}
+		else
+		{
+			cout << "0 0 " << no << endl;
+		}
+	}
+	void binarySearch_2_display()
+	{
+		success = false;
+		mianSort();
+		index=binarySearch_2(1,size);
+		if (success)
+		{
+			cout << 1 << ' ' << index << ' ' << no << endl;
+		}
+		else
+		{
+			cout << "0 0 " << no << endl;
+		}
+	}
+};
+int main()
+{
+	int T;
+	cin >> T;
+	while (T--)
+	{
+		int size;
+		cin >> size;
+		Search myS(size);
+		myS.initMain();
+		myS.binarySearch_1_display();
+	}
+	return 0;
+}

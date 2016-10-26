@@ -1,0 +1,122 @@
+/*一维最近点对问题*/
+
+/*此法用一个分界点不断分段求值 仅仅求出两部分的最值 而不是将两部分全部排序*/
+
+#include<iostream>
+using namespace std;
+const int L = 100;
+
+/*点对结构*/
+struct PiontCouple
+{
+	double d;//点对距离
+	double d1;//第一个点的坐标
+	double d2;//第二个点的坐标	
+};
+
+/*解决问题类*/
+class Graph
+{
+private:
+	double s[L];//点集
+	double Max(int l, int r)
+	{//返回s[]在l-r区间中的最大值
+		int i;
+		double s_max = s[l];
+		for (i = l + 1; i <= r; i++)
+		if (s_max<s[i])
+			s_max = s[i];
+		return s_max;
+	}
+	double Min(int l, int r)
+	{//返回s[]在l-r区间中的最小值
+		int i;
+		double s_min = s[l];
+		for (i = l + 1; i <= r; i++)
+		if (s_min>s[i])
+			s_min = s[i];
+		return s_min;
+	}
+	void Swap(double &x, double &y)
+	{
+		double temp = x;
+		x = y;
+		y = temp;
+	}
+	int Partition(double x, int l, int r)
+	{//将点集l~r中的各元素按与x的大小关系分组 使之分布在两边
+		int i = l - 1, j = r + 1;
+		while (true)
+		{
+			while (s[++i]<x && i<r);//找出稍微比x大的那个 i
+			while (s[--j]>x);//找出稍微比x小的那个 j
+			if (i >= j)
+			{
+				break;
+			}
+			Swap(s[i], s[j]);//交换他们从而归类
+		}
+		return j;//分界点
+	}
+	PiontCouple Cpair(int l, int r)
+	{//返回s[]中的具有最近距离的点对及其距离 
+		PiontCouple min_d = { 99999, 0, 0 };//初始化最短距离为99999
+		if (r - l<1) return min_d;//忽略两个点是同个点的情况 忽略距离是负数的情况
+		double m = (Max(l, r) + Min(l, r)) / 2;//分界点
+		int j = Partition(m, l, r);//按m分组
+
+		PiontCouple d1 = Cpair(l, j), d2 = Cpair(j + 1, r);//递归
+
+		double p = Max(l, j), q = Min(j + 1, r);//分好组之后 就可以求最小点对了 先找出左侧最大和右侧最小
+
+		//返回s[]中的具有最近距离的点对及其距离 比较三个距离 一个是左侧的最小距离 一个是右侧的最小距离 一个是q-p，也就是一左一右
+		if (d1.d<d2.d)
+		{
+			if ((q - p)<d1.d)
+			{
+				min_d.d = (q - p);
+				min_d.d1 = q;
+				min_d.d2 = p;
+				return min_d;
+			}
+			else return d1;
+		}
+		else
+		{
+			if ((q - p)<d2.d)
+			{
+				min_d.d = (q - p);
+				min_d.d1 = q;
+				min_d.d2 = p;
+				return min_d;
+			}
+			else return d2;
+		}
+	}
+public:
+	int initS()
+	{//输入点集 返回大小
+		int size,i;
+		cout << "请输入一维轴上点的数量：" << endl;
+		cin >> size;
+		cout << "请输入一维轴上各点的坐标：" << endl;
+		for (i = 0; i < size; i++)
+			cin >> s[i];
+		return size;
+	}
+	void start()//启动
+	{
+		int m = initS();//构造点集
+		PiontCouple piont = Cpair(0, m - 1);//求出最小点
+		cout << "最近点对坐标为： (d1:" << piont.d1 << ",d2:" << piont.d2 << ")"<<endl;
+		cout << "这两点距离为： " << piont.d << endl;
+	}
+};
+
+int main()
+{
+	Graph gr;
+	gr.start();
+	system("pause");
+	return 0;
+}

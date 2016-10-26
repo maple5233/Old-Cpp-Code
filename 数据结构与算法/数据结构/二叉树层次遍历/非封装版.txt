@@ -1,0 +1,83 @@
+#include<stack>
+#include<queue>
+#include<iostream>
+using namespace std;
+#define datatype char 
+#define binNodePosi binNode*   //结点位置
+#define IsRoot(x) (!((x).parent))//是树根
+#define IsLChild(x) (!IsRoot(x)&&(&(x)==(x).parent->lChild))//是左子树
+#define IsRChild(x) (!IsRoot(x)&&(&(x)==(x).parent->rChild))//是右子树
+#define FromParentTo(x) (IsRoot(x)?_root:(IsLChild(x)?(x).parent->lChild:(x).parent->rChild)) //来自父亲的指针 
+
+class binNode
+{
+public:
+	binNodePosi parent;
+	binNodePosi lChild;
+	binNodePosi rChild;
+	datatype data;
+	binNode(datatype dat = 0, binNodePosi p = NULL, binNodePosi l = NULL, binNodePosi r = NULL)
+		:data(dat), parent(p), lChild(l), rChild(r){}
+};
+class binTree
+{
+public:
+	int _size;
+	binNodePosi _root;
+public:
+	binTree() :_size(0), _root(NULL){}
+	/*返回树根*/
+	binNodePosi root() const
+	{
+		return _root;
+	}
+	/*先序遍历初始化树*/
+	void createTreePre(binNodePosi& x)//x从_root开始
+	{
+		datatype in;
+		cin >> in;
+		if (in == '0')
+		{
+			x = NULL;
+		}
+		else
+		{
+			x = new binNode(in);
+			x->data = in;
+			createTreePre(x->lChild);
+			createTreePre(x->rChild);
+		}
+	}
+	/*层次遍历输出*/
+	void travLevel()
+	{
+		queue<binNodePosi> Q;
+		Q.push(_root);//根节点入队
+		while (!Q.empty())
+		{
+			binNodePosi x = Q.front();
+			Q.pop();
+			cout << x->data;
+			if (x->lChild)
+			{
+				Q.push(x->lChild);
+			}
+			if (x->rChild)
+			{
+				Q.push(x->rChild);
+			}
+		}
+		cout << endl;
+	}
+};
+int main()
+{
+	int T;
+	cin >> T;
+	while (T--)
+	{
+		binTree tree;
+		tree.createTreePre(tree._root);
+		tree.travLevel();
+	}
+}

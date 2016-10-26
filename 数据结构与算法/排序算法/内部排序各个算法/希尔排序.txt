@@ -1,0 +1,117 @@
+/*希尔排序*/
+/*希尔排序的子排序算法一定要求是对输入敏感的算法，也就是越有序的无序序列成本越低的算法，比如直接插入排序算法，这个算法
+对于输入中的逆序对的个数敏感，即越有序，逆序对个数越少，插入排序也就成本越低，从而使希尔排序每一趟的成本越来越低（子序列越来越有序）*/
+#include <iostream>
+using namespace std;
+void Swap(int& a, int& b)
+{//高效地交换a和b
+	a = a^b;
+	b = a^b;
+	a = a^b;
+}
+class ShellSort
+{
+private:
+	int* S;
+	int size;
+	void shellSort1(int n)
+	{//比较直观的插入排序
+		int i, j, gap;
+
+		for (gap = n / 2; gap > 0; gap /= 2) //步长  
+		{
+			displayS();
+			for (i = 0; i < gap; i++)        //直接插入排序  
+			{
+				for (j = i + gap; j < n; j += gap)
+				{
+					if (S[j] < S[j - gap])
+					{
+						int temp = S[j];
+						int k = j - gap;
+						while (k >= 0 && S[k] > temp)
+						{
+							S[k + gap] = S[k];
+							k -= gap;
+						}
+						S[k + gap] = temp;
+					}
+				}
+			}
+		}
+	}
+	void shellSort2(int n)
+	{//每次从数组第gap个元素开始，每个元素与自己组内的数据进行直接插入排序显然也是正确的
+		int j, gap;//gap为步长      
+
+		for (gap = n / 2; gap > 0; gap /= 2)//增量序列取做1 2 4 8 16......
+		{
+			for (j = gap; j < n; j++)//从数组第gap个元素开始  
+			{
+				if (S[j] < S[j - gap])//每个元素与自己组内的数据进行直接插入排序  
+				{
+					int temp = S[j];
+					int k = j - gap;
+					while (k >= 0 && S[k] > temp)
+					{
+						S[k + gap] = S[k];
+						k -= gap;
+					}//搬运
+					S[k + gap] = temp;//插入
+				}
+			}
+		}
+	}
+	void shellSort3(int n)
+	{//使用冒泡作为子排序算法 效率惨不忍睹
+		int i, j, gap;
+		
+		for (gap = n / 2; gap > 0; gap /= 2)
+		{
+			displayS();
+			for (i = gap; i < n; i++)
+			{
+				for (j = i - gap; j >= 0 && S[j] > S[j + gap]; j -= gap)
+					Swap(S[j], S[j + gap]);
+			}
+		}
+	}
+public:
+	ShellSort(int n = 10)
+	{
+		S = new int[n];
+		size = n;
+	}
+	~ShellSort(){ delete[] S; }
+	void initS()
+	{
+		int i;
+		for (i = 0; i < size; i++)
+		{
+			cin >> S[i];
+		}
+	}
+	void displayS()
+	{
+		int i;
+		for (i = 0; i < size - 1; i++)
+		{
+			cout << S[i] << ' ';
+		}
+		cout << S[size - 1] << endl;
+	}
+	void mySort()
+	{
+		shellSort1(size);
+	}
+};
+int main()
+{
+	int n;
+	cin >> n;
+	ShellSort s(n);
+	s.initS();
+	s.mySort();
+	s.displayS();
+	system("pause");
+}

@@ -1,0 +1,218 @@
+#include<vector>
+#include<queue>
+#include<iostream>
+using namespace std;
+#define datatype char
+typedef enum {UNDISCOVERD, DISCOVERD, VISITED } VStatus;//顶点的三种状态
+typedef enum {UNDETERMINED,TREE,CROSS,FORWARD,BACKWARD}Etype;//边的类型：未定义，支撑树边，跨边，前向边，后向边
+
+vector<char> out;
+
+
+class Vertex//顶点类
+{
+public:
+	datatype data;//数据域
+	int no;//编号
+	VStatus status;//状态
+	int dtime, ftime;//遍历中的时间标签
+	int parent;//遍历中的父节点
+	Vertex(datatype d=0)
+	{
+		data = d;
+		parent = -1;
+		no = 0;
+		dtime = -1;
+		ftime = -1;
+		status = UNDISCOVERD;
+	}
+};
+class Edge
+{
+public:
+	int weight;//权重
+	Etype type;//分类
+	Edge(int w=9999)
+	{
+		weight = w;
+		type = UNDETERMINED;
+	}
+};
+class Graph
+{
+private:
+	void reset()
+	{//辅助信息复位
+		int i, j;
+		for (i = 0; i < n; i++)
+		{
+			V.at(i).status = UNDISCOVERD;
+			V.at(i).dtime = V.at(i).ftime = -1;
+			V.at(i).parent = -1;
+			for (j = 0; j < n; j++)
+			{
+				if (E[i][j]!=NULL)
+				{
+					E[i][j]->type=UNDETERMINED;
+				}	
+			}
+		}
+	}
+	void BFS(int v,int &clock)//连通域广度优先搜索
+	{
+		queue<int> Q;
+		int u;
+
+		V[v].status = DISCOVERD;
+		Q.push(v); 
+		while (!Q.empty())
+		{
+			int v = Q.front();
+			Q.pop();
+			V[v].dtime = ++clock;
+			for (u = firstNbr(v); u < n; u = nextNbr(v, u))//枚举所有邻居
+			{
+				if (UNDISCOVERD == V[u].status)
+				{
+					V[u].status = DISCOVERD;
+					Q.push(u);
+					E[v][u]->type = TREE;
+					V[u].parent = v;
+				}
+				else
+				{
+					E[v][u]->type = CROSS;
+				}
+			}
+			out.push_back(V[v].data);//访问之
+			V[v].ftime = clock;
+			V[v].status = VISITED;
+		}
+	}
+	void DFS(int v,int &clock)//连通域深度优先搜索
+	{
+		int u = 0;
+		V[v].dtime = ++clock;
+		V[v].status = DISCOVERD;
+		for (u = firstNbr(v); u < n; u = nextNbr(v, u))
+		{
+			switch (V[v].status)
+			{
+			case UNDISCOVERD://扩展支撑树
+				E[v][u]->type = TREE; V[u].parent = v; DFS(u, clock); break;//递归
+			case DISCOVERD://u已经被发现但没被访问 应该属于被后代指向的祖先
+				E[v][u]->type = BACKWARD; break;
+			default://u已经被访问完毕
+				E[v][u]->type = (V[v].dtime < V[u].dtime) ? FORWARD : CROSS;break;
+			}
+		}
+		cout << V[v].data << endl;//访问之
+		V[v].status = VISITED;
+		V[v].ftime = ++clock;
+	}
+public:
+	vector<Vertex> V;//顶点集
+	vector<vector<Edge*> > E;//边集 二维向量
+	int n;//点的个数
+	int e;//边的条数
+	Graph(){n = e = 0;}
+
+	int getIndex(datatype c)//返回指定数据的编号
+	{
+		vector<Vertex>::iterator it;
+		for (it = V.begin(); it != V.end(); it++)
+		{
+			if (it->data == c)
+			{
+				return it->no;
+			}
+		}
+	}
+	bool exsit(int i,int j)//判断某条边是否存在
+	{
+		return (0 <= j) && (0 <= i) && (i < n) && (j < n) && (E[i][j]);
+	}
+	int nextNbr(int i,int j)//若已经枚举到到点i的邻居j 枚举下一个i的邻居
+	{
+		while ((n>j) && !exsit(i, ++j));
+		return j;
+	}
+	int firstNbr(int i)//枚举点i的第一个邻居（在i行的行首）
+	{
+		return(nextNbr(i, -1));
+	}
+	bool insertEdge(int i, int j, int w=9999)//插入一条由i指向j的边 权重为w
+	{
+		if (exsit(i, j))
+			return false;
+		E[i][j] = new Edge(w);//创建新边 权重为w
+		e++;
+	}
+	void insertVertex(Vertex v)//插入顶点v
+	{
+		int j;
+		for (j = 0; j < n; j++)
+		{
+			E[j].push_back(NULL);
+		}//宽度增加
+		n++;
+		E.push_back(vector<Edge*>(n, NULL));//高度增加
+		V.push_back(v);//点集中插入v
+	}
+	void bfs(int s)//全图广度优先搜索
+	{
+		reset();
+		int clock = 0;
+		int v = s;
+		do
+		{
+			if (UNDISCOVERD == V[v].status)
+			{
+				BFS(v, clock);
+			}
+		} while (s != (v = (++v) % n));
+	}
+	void dfs(int s)//全图深度优先搜索
+	{
+		reset();
+		int clock = 0;
+		int v = s;
+		do
+		{
+			if (UNDISCOVERD == V[v].status)
+			{
+				DFS(v, clock);
+			}
+		} while (s != (v = (++v) % n));
+	}
+};
+int main()
+{
+	int n,e;
+	int i;
+	datatype a, b;
+
+	cin >> n;
+	Graph gr;
+	Vertex v;
+	for (i = 0; i < n; i++)
+	{
+		v.no = i;
+		cin >> v.data;
+		gr.insertVertex(v);
+	}
+	cin >> e;
+	for (i = 0; i < e; i++)
+	{
+		cin >> a >> b;
+		gr.insertEdge(gr.getIndex(a), gr.getIndex(b));
+	}
+	gr.bfs(0);
+	vector<char>::iterator it;
+	for (it = out.begin(); it != out.end()-1; it++)
+	{
+		cout << (*it) << ' ';
+	}
+	cout << (*it)<<endl;
+	return 0;
+}

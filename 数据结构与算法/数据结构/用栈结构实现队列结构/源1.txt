@@ -1,0 +1,101 @@
+#include <iostream>
+#include <stack>
+using namespace std;
+
+class Queue
+{
+private:
+	stack<int> p, q;
+public:
+	Queue(){}
+	int pop();				//移除队列头元素
+	void push(int n);		//在队尾增加元素
+//	bool empty();			//判断队列是否为空
+//	int size();				//返回队列元素数目
+//	int bottom();			//返回队列头元素
+	void display();
+};
+
+void Queue::push(int n)
+{
+	int temp;
+
+	if (p.empty() == 1&&q.empty()!=1)
+	{
+		while (q.empty() != 1)
+		{
+			temp = q.top();
+			p.push(temp);
+			q.pop();
+		}
+	}
+	p.push(n);
+}
+
+int Queue::pop()
+{
+	int temp;
+
+	if (q.empty() == 1&&p.empty()!=1)
+	{
+		while (p.empty() != 1)
+		{
+			temp = p.top();
+			q.push(temp);
+			p.pop();
+		}
+	}
+	temp = q.top();
+	q.pop();
+	return temp;
+}
+
+void Queue::display()
+{
+	int temp;
+
+	if (q.empty() == 1&&p.empty()!=1)
+	{
+		while (p.empty() != 1)
+		{
+			temp = p.top();
+			q.push(temp);
+			p.pop();
+		}
+	}
+	cout << "队列元素：";
+	while (q.empty() != 1)
+	{
+		cout << q.top() << " ";
+		q.pop();
+	}
+	cout << endl;
+}
+
+int main()
+{
+	int number, i;
+	Queue s;
+
+	cin >> number;
+	while (number!=0)			//输入队列元素,为0时结束
+	{
+		s.push(number);
+		cin >> number;
+	}
+	cout << "移除队列头元素" << s.pop() << endl;
+	cout << "再次移除队列头元素" << s.pop() << endl;
+
+	cin >> number;
+	while (number !=0)			//继续输入队列元素,为0时结束
+	{
+		s.push(number);
+		cin >> number;
+	}
+	cout << "移除新队列头元素" << s.pop() << endl;
+	cout << "再次移除新队列头元素" << s.pop() << endl;
+	s.display();
+
+	system("pause");
+	return 0;
+}
